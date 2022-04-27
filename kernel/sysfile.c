@@ -484,3 +484,41 @@ sys_pipe(void)
   }
   return 0;
 }
+
+uint64 sys_lseek(void){
+  int fd;
+  int offset;
+  int whence;
+  
+  struct file *file;
+
+  if(argfd(0, &fd, &file) < 0 || argint(1, &offset) < 0 || argint(2, &whence) < 0)
+    return -1;
+
+  int from;
+  switch (whence)
+  {
+  case SEEK_SET:
+    from = 0;
+    break;
+  
+  case SEEK_CUR:
+    from = file->off;
+    break;
+  
+  case SEEK_END:
+    from = file->ip->size;
+    break;
+
+  default:
+    return -1;
+  }
+
+  if(from + offset < 0 || from + offset > file->ip->size){
+    return -1;
+  }
+  
+  file->off = from + offset;
+
+  return file->off;
+}
