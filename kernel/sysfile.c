@@ -517,7 +517,7 @@ uint64 sys_lseek(void){
   if(from + offset < 0 || from + offset > file->ip->size){
     return -1;
   }
-  
+
   file->off = from + offset;
 
   return file->off;
