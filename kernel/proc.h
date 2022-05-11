@@ -107,4 +107,6 @@ struct proc {
   char name[16];               // Process name (debugging)
 
   int tracemask;
+
+  uint64 stacksize;            // dynamic size of stack
 };

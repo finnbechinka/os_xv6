@@ -135,6 +135,9 @@ found:
     return 0;
   }
 
+  // initilize stackisze
+  p->stacksize = PGSIZE;
+
   // Set up new context to start executing at forkret,
   // which returns to user space.
   memset(&p->context, 0, sizeof(p->context));
@@ -150,6 +153,7 @@ found:
 static void
 freeproc(struct proc *p)
 {
+  p->stacksize = 0;
   if(p->trapframe)
     kfree((void*)p->trapframe);
   p->trapframe = 0;
@@ -290,6 +294,8 @@ fork(void)
   np->sz = p->sz;
 
   np->tracemask = p->tracemask;
+
+  np->stacksize = p->stacksize;
 
   // copy saved user registers.
   *(np->trapframe) = *(p->trapframe);
