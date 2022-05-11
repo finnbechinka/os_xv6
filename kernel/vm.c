@@ -432,3 +432,58 @@ copyinstr(pagetable_t pagetable, char *dst, uint64 srcva, uint64 max)
     return -1;
   }
 }
+
+void print_entries(pagetable_t pagetable, int level){
+  for(int i = 0; i < 512; i++){
+    pte_t pte = pagetable[i];
+
+    // check if entry is valid
+    if(pte & PTE_V){
+      for(int j = 0; j <= level; j++){
+        printf(".. ");
+      }
+
+      printf("%d: pte %p pa %p flags ", i, pte, PTE2PA(pte));
+
+      // check and print wich flags are set
+      if((pte & PTE_U) == 0){
+        printf("-");
+      }else{
+        printf("U");
+      }
+      if((pte & PTE_X) == 0){
+        printf("-");
+      }else{
+        printf("X");
+      }
+      if((pte & PTE_W )== 0){
+        printf("-");
+      }else{
+        printf("W");
+      }
+      if((pte & PTE_R) == 0){
+        printf("-");
+      }else{
+        printf("R");
+      }
+      if((pte & PTE_V) == 0){
+        printf("-\n");
+      }else{
+        printf("V\n");
+      }
+
+      // if only the valid flag is set then 
+      // the pte points to the next page table level
+      if((pte & PTE_V) && (pte & (PTE_R|PTE_W|PTE_W)) == 0){
+        pagetable_t next_level = (pagetable_t) PTE2PA(pte);
+        print_entries(next_level, level+1);
+      }
+    }
+  }
+}
+
+void vmprint(pagetable_t pagetable){
+  printf("page table %p\n", pagetable);
+  print_entries(pagetable, 0);
+}
+
