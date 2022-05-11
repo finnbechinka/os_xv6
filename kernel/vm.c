@@ -466,11 +466,8 @@ void print_entries(pagetable_t pagetable, int level){
       }else{
         printf("R");
       }
-      if((pte & PTE_V) == 0){
-        printf("-\n");
-      }else{
-        printf("V\n");
-      }
+      
+      printf("V\n");
 
       // if only the valid flag is set then 
       // the pte points to the next page table level
