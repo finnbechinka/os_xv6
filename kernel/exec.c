@@ -14,7 +14,7 @@ exec(char *path, char **argv)
 {
   char *s, *last;
   int i, off;
-  uint64 argc, sz = 0, sp, ustack[MAXARG], stackbase;
+  uint64 argc, sz = 0, sp, ustack[MAXARG], stackbase, badstacksize = 0;
   struct elfhdr elf;
   struct inode *ip;
   struct proghdr ph;
@@ -63,17 +63,19 @@ exec(char *path, char **argv)
 
   p = myproc();
   uint64 oldsz = p->sz;
+  uint64 oldstacksize = p->stacksize;
+  // ensure minimum userstack size
+  if(p->stacksize <= 0)
+    p->stacksize = PGSIZE;
 
-  // Allocate two pages at the next page boundary.
-  // Use the second as the user stack.
+  // Allocate the user stack.
   sz = PGROUNDUP(sz);
-  uint64 sz1;
-  if((sz1 = uvmalloc(pagetable, sz, sz + 2*PGSIZE)) == 0)
+  if((uvmalloc(pagetable, USTACK - p->stacksize, USTACK)) == 0)
     goto bad;
-  sz = sz1;
-  uvmclear(pagetable, sz-2*PGSIZE);
-  sp = sz;
-  stackbase = sp - PGSIZE;
+  sp = USTACK;
+  stackbase = USTACK - p->stacksize;
+
+  badstacksize = p->stacksize;
 
   // Push argument strings, prepare rest of stack in ustack.
   for(argc = 0; argv[argc]; argc++) {
@@ -114,7 +116,7 @@ exec(char *path, char **argv)
   p->sz = sz;
   p->trapframe->epc = elf.entry;  // initial program counter = main
   p->trapframe->sp = sp; // initial stack pointer
-  proc_freepagetable(oldpagetable, oldsz);
+  proc_freepagetable(oldpagetable, oldsz, oldstacksize);
 
   // print pagetable only when pid is 1
   if(p->pid == 1)
@@ -124,7 +126,7 @@ exec(char *path, char **argv)
 
  bad:
   if(pagetable)
-    proc_freepagetable(pagetable, sz);
+    proc_freepagetable(pagetable, sz, badstacksize);
   if(ip){
     iunlockput(ip);
     end_op();

@@ -108,5 +108,5 @@ struct proc {
 
   int tracemask;
 
-  uint64 stacksize;            // dynamic size of stack
+  uint64 stacksize;            // dynamic size of process stack
 };
