@@ -475,7 +475,7 @@ void print_entries(pagetable_t pagetable, int level){
 
       // if only the valid flag is set then 
       // the pte points to the next page table level
-      if((pte & PTE_V) && (pte & (PTE_R|PTE_W|PTE_W)) == 0){
+      if((pte & PTE_V) && (pte & (PTE_R|PTE_W|PTE_X)) == 0){
         pagetable_t next_level = (pagetable_t) PTE2PA(pte);
         print_entries(next_level, level+1);
       }

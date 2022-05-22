@@ -65,7 +65,7 @@ exec(char *path, char **argv)
   uint64 oldsz = p->sz;
   uint64 oldstacksize = p->stacksize;
   // ensure minimum userstack size
-  if(p->stacksize <= 0)
+  if(p->stacksize == 0)
     p->stacksize = PGSIZE;
 
   // Allocate the user stack.
