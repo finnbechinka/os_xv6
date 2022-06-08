@@ -554,9 +554,71 @@ uint64 sys_symlink(void){
 }
 
 uint64 sys_chown(void){
-  return -1;
+  char path[MAXPATH];
+  int uid, gid;
+  struct inode *ip;
+  struct proc *p = myproc();
+
+  // try to get args
+  if(argstr(0, path, MAXPATH) < 0 || argint(1, &uid) < 0 || argint(2, &gid) < 0){
+    return -1;
+  }
+
+  begin_op();
+
+  // get file inode
+  if((ip = namei(path)) ==0){
+    end_op();
+    return -1;
+  }
+  // change the ownership of the file
+  // check if change is initiated by root
+  // also check that uid is not -1 as specified on man page
+  if(uid != -1 && p->uid == 0){
+    // change uid
+    ip->uid = uid;
+  }
+  // check if change is initiated by root or file owner
+  // also check that gid is not -1 as specified on man page
+  if(gid != -1 && (p->uid == 0 || p->uid == ip->uid)){
+    // change gid
+    ip->gid = gid;
+  }
+
+  iupdate(ip);
+  end_op();
+  return 0;
 }
 
 uint64 sys_chmod(void){
-  return -1;
+  char path[MAXPATH];
+  int mode;
+  struct inode *ip;
+  struct proc *p = myproc();
+
+  // try to get args
+  if(argstr(0, path, MAXPATH) < 0 || argint(1, &mode) < 0){
+    return -1;
+  }
+
+  begin_op();
+
+  // get file inode
+  if((ip = namei(path)) == 0){
+    end_op();
+    return -1;
+  }
+
+  // check if change is initiated by root or file owner
+  if(p->uid == 0 || p->uid == ip->uid){
+    // change mode
+    ip->mode = mode;
+    iupdate(ip);
+    end_op();
+
+    return 0;
+  }else{
+    end_op();
+    return -1;
+  }
 }

@@ -105,9 +105,27 @@ uint64 sys_getgid(void){
 }
 
 uint64 sys_setuid(void){
-  return -1;
+  int uid;
+  struct proc *p = myproc();
+
+  // try to get uid arg
+  if(argint(0, &uid) < 0){
+    return -1;
+  }
+
+  p->uid = uid;
+  return 0;
 }
 
 uint64 sys_setgid(void){
-  return -1;
+  int gid;
+  struct proc *p = myproc();
+
+  // try to get gid arg
+  if(argint(0, &gid) < 0){
+    return -1;
+  }
+
+  p->gid = gid;
+  return 0;
 }
