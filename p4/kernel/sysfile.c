@@ -310,30 +310,35 @@ sys_open(void)
     }
     ilock(ip);
 
+    // chain length
     int count = 0;
-
-    while((ip->type == T_SYMLINK) && !(omode & O_NOFOLLOW) && count < 10){
+    // if the type is T_SYMLINK and the O_NOFOLLOW flag is not not set
+    // follow the symbolic link up to a chain length of 10.
+    // like this if the O_NOFOLLOW flag is set the symlink will be opened
+    while((ip->type == T_SYMLINK) && !(omode & O_NOFOLLOW)){
+      // try to read the target of the current inode
       if(readi(ip, 0, (uint64)path, 0, ip->size) == ip->size){
         iunlock(ip);
 
+        // set ip to be the inode target
         if((ip = namei(path)) == 0){
           end_op();
           return -1;
         }
 
         ilock(ip);
-        count++;
+
+        // fail if chain length is 10
+        if((++count) == 10){
+          iunlock(ip);
+          end_op();
+          return -1;
+        }
       }else{
         iunlock(ip);
         end_op();
         return -1;
       }
-    }
-
-    if(count == 10){
-      iunlock(ip);
-      end_op();
-      return -1;
     }
 
     if(ip->type == T_DIR && omode != O_RDONLY){
@@ -514,25 +519,36 @@ sys_pipe(void)
 
 uint64 sys_symlink(void){
   char target[MAXPATH], path[MAXPATH];
+  struct inode *ip;
+  int len;
+  
 
+  // get args
   if(argstr(0, target, MAXPATH) < 0 || argstr(1, path, MAXPATH) < 0){
     return -1;
   }
 
+  // wait for protocol system to be ready
   begin_op();
-  struct inode *ip = create(path, T_SYMLINK, 0, 0);
-
-  if(ip == 0){
+  // create inode for our symbolic link
+  if((ip = create(path, T_SYMLINK, 0, 0)) == 0){
+    // error creating inode
     end_op();
     return -1;
   }
 
-  if(writei(ip, 0, (uint64)target, 0, strlen(target)) != strlen(target)){
+  len = strlen(target);
+  // store link target in the inode data blocks
+  if(writei(ip, 0, (uint64)target, 0, len) != len){
+    // unlock and put inode
     iunlockput(ip);
+    end_op();
     return -1;
   }
 
+  // unlock and put inode
   iunlockput(ip);
+  // decrement open system calls counter, commit transaction if counter 0 
   end_op();
   return 0;
 }
