@@ -244,6 +244,9 @@ userinit(void)
 
   p->state = RUNNABLE;
 
+  p->uid = 0;
+  p->gid = 0;
+
   release(&p->lock);
 }
 
@@ -288,6 +291,9 @@ fork(void)
     return -1;
   }
   np->sz = p->sz;
+
+  np->uid = p->uid;
+  np->gid = p->gid;
 
   // copy saved user registers.
   *(np->trapframe) = *(p->trapframe);

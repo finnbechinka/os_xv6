@@ -24,6 +24,12 @@ char* sbrk(int);
 int sleep(int);
 int uptime(void);
 int symlink(char *taget, char *path);
+int chown(char *path, int uid, int grid);
+int getuid(void);
+int setuid(short uid);
+int getgid(void);
+int setgid(short gid);
+int chmod(char *path, short mode)
 
 // ulib.c
 int stat(const char*, struct stat*);
