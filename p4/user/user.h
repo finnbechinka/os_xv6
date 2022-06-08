@@ -29,7 +29,7 @@ int getuid(void);
 int setuid(short uid);
 int getgid(void);
 int setgid(short gid);
-int chmod(char *path, short mode)
+int chmod(char *path, short mode);
 
 // ulib.c
 int stat(const char*, struct stat*);

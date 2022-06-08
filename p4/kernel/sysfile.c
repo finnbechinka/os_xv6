@@ -552,3 +552,11 @@ uint64 sys_symlink(void){
   end_op();
   return 0;
 }
+
+uint64 sys_chown(void){
+  return -1;
+}
+
+uint64 sys_chmod(void){
+  return -1;
+}

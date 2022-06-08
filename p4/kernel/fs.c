@@ -683,5 +683,5 @@ nameiparent(char *path, char *name)
 }
 
 int permission(struct inode *ip, int mask){
-  
+  return -1;
 }
