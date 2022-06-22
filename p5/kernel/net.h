@@ -175,5 +175,72 @@ struct dns_data {
 // sntp reqest and response header
 // see: https://www.rfc-editor.org/rfc/rfc4330.html#page-8
 struct sntp {
-
+  /*
+  +-----------+------------+-----------------------+
+  | Name      | Formula    | Description           |
+  +-----------+------------+-----------------------+
+  | leap      | leap       | leap indicator (LI)   |
+  | version   | version    | version number (VN)   |
+  | mode      | mode       | mode                  |
+  | stratum   | stratum    | stratum               |
+  | poll      | poll       | poll exponent         |
+  | precision | rho        | precision exponent    |
+  | rootdelay | delta_r    | root delay            |
+  | rootdisp  | epsilon_r  | root dispersion       |
+  | refid     | refid      | reference ID          |
+  | reftime   | reftime    | reference timestamp   |
+  | org       | T1         | origin timestamp      |
+  | rec       | T2         | receive timestamp     |
+  | xmt       | T3         | transmit timestamp    |
+  | dst       | T4         | destination timestamp |
+  | keyid     | keyid      | key ID                |
+  | dgst      | dgst       | message digest        |
+  +-----------+------------+-----------------------+
+                          1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9  0  1
+  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  |LI | VN  |Mode |    Stratum    |     Poll      |   Precision    |
+  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  |                          Root  Delay                           |
+  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  |                       Root  Dispersion                         |
+  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  |                     Reference Identifier                       |
+  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  |                                                                |
+  |                    Reference Timestamp (64)                    |
+  |                                                                |
+  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  |                                                                |
+  |                    Originate Timestamp (64)                    |
+  |                                                                |
+  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  |                                                                |
+  |                     Receive Timestamp (64)                     |
+  |                                                                |
+  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  |                                                                |
+  |                     Transmit Timestamp (64)                    |
+  |                                                                |
+  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  |                 Key Identifier (optional) (32)                 |
+  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  |                                                                |
+  |                                                                |
+  |                 Message Digest (optional) (128)                |
+  |                                                                |
+  |                                                                |
+  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  */
+  uint8 leap_version_mode; // 2 bit LI + 3 bit vn + 3 bit mode
+  uint8 stratum;
+  uint8 poll;
+  uint8 precision;
+  uint32 rootdelay;
+  uint32 rootdisp;
+  uint32 refid;
+  uint64 reftime;
+  uint64 org;
+  uint64 rec;
+  uint64 xmt; 
 } __attribute__((packed));

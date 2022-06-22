@@ -95,49 +95,42 @@ e1000_init(uint32 *xregs)
 int
 e1000_transmit(struct mbuf *m)
 {
-  //
-  // Your code here.
-  //
-  // the mbuf contains an ethernet frame; program it into
-  // the TX descriptor ring so that the e1000 sends it. Stash
-  // a pointer so that it can be freed after sending.
-  //
-  printf("\n  e1000_transmit called\n");
+  //printf("\n  e1000_transmit called\n");
   acquire(&e1000_lock);
 
   uint index = regs[E1000_TDT];
-  printf("  index: %d\n", index);
+  //printf("  index: %d\n", index);
 
-  struct tx_desc desc = tx_ring[index];
+  struct tx_desc *desc = &tx_ring[index];
 
-  uint8 status = desc.status;
-  printf("  status: %d\n", status);
+  uint8 status = desc->status;
+  //printf("  status: %d\n", status);
 
   uint8 bit_set = status & E1000_TXD_STAT_DD;
-  printf("  status bit set?: ");
+  //printf("  status bit set?: ");
 
   if(!bit_set){
-    printf("bit not set\n");
+    //printf("bit not set\n");
     release(&e1000_lock);
     return -1;
   }
 
-  printf("bit set\n");
+  //printf("bit set\n");
   if(tx_mbufs[index]){
-    printf("  mbuffree the last mbuf\n");
+    //printf("  mbuffree the last mbuf\n");
     mbuffree(tx_mbufs[index]);
   }
 
-  desc.addr = (uint64) m->head;
-  desc.length = m->len;
+  desc->addr = (uint64) m->head;
+  desc->length = (uint16) m->len;
 
-  desc.cmd = desc.cmd | E1000_TXD_CMD_RS;
-  //desc.cmd = desc.cmd | E1000_TXD_CMD_EOP;
+  desc->cmd = desc->cmd | E1000_TXD_CMD_RS;
+  desc->cmd = desc->cmd | E1000_TXD_CMD_EOP;
 
   tx_mbufs[index] = m;
 
   uint incremented_index = (index + 1) % TX_RING_SIZE;
-  printf("  incremented index: %d\n", incremented_index);
+  //printf("  incremented index: %d\n", incremented_index);
   regs[E1000_TDT] = incremented_index;
 
   release(&e1000_lock);
@@ -147,14 +140,45 @@ e1000_transmit(struct mbuf *m)
 static void
 e1000_recv(void)
 {
-  //
-  // Your code here.
-  //
-  // Check for packets that have arrived from the e1000
-  // Create and deliver an mbuf for each packet (using net_rx()).
-  //
+  //printf("\ne1000_recv called\n");
 
-  printf("\ne1000_recv called\n");
+  acquire(&e1000_lock);
+
+  for(;;){
+    uint index = (regs[E1000_RDT] + 1) % RX_RING_SIZE;
+    //printf("  index: %d\n", index);
+
+    struct rx_desc *desc = &rx_ring[index];
+    struct mbuf *buf = rx_mbufs[index];
+
+    uint8 status = desc->status;
+    //printf("  status: %d\n", status);
+
+    uint8 bit_set = status & E1000_RXD_STAT_DD;
+    //printf("  status bit set?: ");
+
+    if(!bit_set){
+      //printf("bit not set\n");
+      break;
+    }
+
+    //printf("bit set\n");
+    
+    mbufput(buf, desc->length);
+    release(&e1000_lock);
+    net_rx(buf);
+    acquire(&e1000_lock);
+
+    rx_mbufs[index] = mbufalloc(0);
+    buf = rx_mbufs[index];
+
+    desc->addr = (uint64) buf->head;
+    desc->status = 0x00;
+
+    regs[E1000_RDT] = index;
+  }
+
+  release(&e1000_lock);
 }
 
 void

@@ -39,7 +39,9 @@ printDate(uint32 sec)
 void
 sntp(void) 
 {
-    
+  // li = 0, vn = 3, mode = 3 (client)
+  // struct sntp packet = { 0b00011011, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
 }
 
 int
